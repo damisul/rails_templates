@@ -1,0 +1,7 @@
+# copy this file to your home directory
+-d postgresql
+--skip-action-cable
+--skip-sprockets
+--skip-turbolinks
+--webpack=react
+--skip-action-cable
