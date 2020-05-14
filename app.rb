@@ -66,3 +66,10 @@ rails_command 'db:migrate', env: :development
 
 git add: '.'
 git commit: "-m 'Added dotenv-rails gem and used it for database configuration'"
+
+rails_command 'webpacker:install'
+rails_command 'webpacker:install:react'
+rails_command 'webpacker:install:erb'
+
+git add: '.'
+git commit: "-m 'Installed webpacker with React'"
