@@ -9,8 +9,15 @@ end
 run "echo '.idea' >> .gitignore"
 run "echo '.env.*.local' >> .gitignore"
 
-db_user = ask("Local DB user name (leave empty for default 'postgres' value):") || 'postgres'
-db_password = ask("Local DB password (leave empty for default 'postgres' value):") || 'postgres'
+db_user = ask("Local DB user name (leave empty for default 'postgres' value):")
+if db_user.blank?
+  db_user = 'postgres'
+end
+
+db_password = ask("Local DB password (leave empty for default 'postgres' value):")
+if db_password.blank?
+  db_password = 'postgres'
+end
 
 file '.env.test', <<~CODE
   DATABASE_URL=postgres://#{db_user}:#{db_password}@localhost:5432/#{app_name}_test
@@ -34,6 +41,7 @@ end
 
 file '.env.development', env_dev
 
+run 'rm config/database.yml'
 file 'config/database.yml', <<~CODE
   default: &default
     adapter: postgresql
