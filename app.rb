@@ -1,20 +1,30 @@
+def commit_changes(message)
+  git add: '.'
+  git commit: "-m '#{message}'"
+end
+
 git :init
-git add: '.'
-git commit: "-m 'Initial commit'"
+commit_changes 'Initial commit'
 
 gem_group :test, :development do
   gem 'dotenv-rails'
 end
 
-run "echo '.idea' >> .gitignore"
-run "echo '.env.*.local' >> .gitignore"
+insert_into_file '.gitignore', <<~CODE
 
-db_user = ask("Local DB user name (leave empty for default 'postgres' value):")
+  # Ignore IDE settings
+  .idea
+
+  # Ignore machine-specific settings for dotenv-rails gem
+  .env.*.local
+CODE
+
+db_user = ask "Local DB user name (leave empty for default 'postgres' value):"
 if db_user.blank?
   db_user = 'postgres'
 end
 
-db_password = ask("Local DB password (leave empty for default 'postgres' value):")
+db_password = ask "Local DB password (leave empty for default 'postgres' value):"
 if db_password.blank?
   db_password = 'postgres'
 end
@@ -23,25 +33,11 @@ file '.env.test', <<~CODE
   DATABASE_URL=postgres://#{db_user}:#{db_password}@localhost:5432/#{app_name}_test
 CODE
 
-env_dev = <<~CODE
+file '.env.development', <<~CODE
   DATABASE_URL=postgres://#{db_user}:#{db_password}@localhost:5432/#{app_name}_development
 CODE
 
-if yes?('Add Active Storage?')
-  gem_group :development, :production do
-    gem 'aws-sdk-s3'
-  end
-  rails_command 'active_storage:install'
-  env_dev << <<~CODE
-    S3_ACCESS_KEY_ID=<SET VALUE>
-    S3_SECRET_ACCESS_KEY=<SET VALUE>
-    S3_STORAGE_BUCKET=<SET VALUE>
-  CODE
-end
-
-file '.env.development', env_dev
-
-run 'rm config/database.yml'
+remove_file 'config/database.yml'
 file 'config/database.yml', <<~CODE
   default: &default
     adapter: postgresql
@@ -58,18 +54,49 @@ file 'config/database.yml', <<~CODE
   production:
     <<: *default
 CODE
-
 run 'bundle install'
 rails_command 'db:create', env: :test
 rails_command 'db:create', env: :development
-rails_command 'db:migrate', env: :development
 
-git add: '.'
-git commit: "-m 'Added dotenv-rails gem and used it for database configuration'"
+commit_changes 'Added dotenv-rails gem and used it for database configuration'
+
+if yes?('Add Active Storage?')
+  gem_group :development, :production do
+    gem 'aws-sdk-s3'
+  end
+  insert_into_file '.env.development', <<~CODE
+    S3_ACCESS_KEY_ID=<SET VALUE>
+    S3_SECRET_ACCESS_KEY=<SET VALUE>
+    S3_STORAGE_BUCKET=<SET VALUE>
+  CODE
+
+  remove_file 'config/storage.yml'
+  file 'config/storage.yml', <<~CODE
+    test:
+      service: Disk
+      root: <%= Rails.root.join("tmp/storage") %>
+    
+    amazon:
+      service: S3
+      access_key_id: <%= ENV['S3_ACCESS_KEY_ID'] %>
+      secret_access_key: <%= ENV['S3_SECRET_ACCESS_KEY'] %>
+      region: eu-central-1
+      bucket: <%= ENV['S3_STORAGE_BUCKET'] %>
+  CODE
+
+  rails_command 'active_storage:install'
+  rails_command 'db:migrate', env: :development
+
+  run 'bundle install'
+  commit_changes 'Settings for ActiveStorage'
+end
 
 rails_command 'webpacker:install'
-rails_command 'webpacker:install:react'
+commit_changes 'Installed webpacker'
 rails_command 'webpacker:install:erb'
+commit_changes 'Added erb support to webpacker'
 
-git add: '.'
-git commit: "-m 'Installed webpacker with React'"
+if yes?('Add React?')
+  rails_command 'webpacker:install:react'
+  commit_changes 'Added React to webpacker'
+end
