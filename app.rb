@@ -61,6 +61,18 @@ def install_dotenv
   commit_changes 'Added dotenv-rails gem and used it for database configuration'
 end
 
+def install_rspec
+  gem_group :test do
+    gem 'faker'
+  end
+
+  gem_group :test, :development do
+    gem 'byebug'
+    gem 'factory_bot_rails'
+    gem 'rspec'
+  end
+end
+
 def install_active_storage
   gem_group :development, :production do
     gem 'aws-sdk-s3'
@@ -114,6 +126,12 @@ def install_webpacker
 end
 
 install_dotenv
+
+gem_group :development do
+  gem 'rubocop'
+end
+
+install_rspec
 
 if yes?('Add Active Storage?')
   install_active_storage
