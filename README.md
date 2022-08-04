@@ -14,5 +14,5 @@ https://guides.rubyonrails.org/rails_application_templates.html
 
 when creating new project simply run:
 ```
-rails new <PROJECT_NAME> -m https://github.com/damisul/rails_templates/blob/master/app.rb
+rails new <PROJECT_NAME> -m https://raw.githubusercontent.com/damisul/rails_templates/master/app.rb
 ```
