@@ -55,8 +55,8 @@ def install_dotenv
       <<: *default
   CODE
   run 'bundle install'
-  rails_command 'db:create', env: :test
-  rails_command 'db:create', env: :development
+  rails_command 'db:create', env: 'test'
+  rails_command 'db:create', env: 'development'
 
   commit_changes 'Added dotenv-rails gem and used it for database configuration'
 end
@@ -113,18 +113,6 @@ def install_active_storage
   commit_changes 'Settings for ActiveStorage'
 end
 
-def install_webpacker
-  rails_command 'webpacker:install'
-  commit_changes 'Installed webpacker'
-  rails_command 'webpacker:install:erb'
-  commit_changes 'Added erb support to webpacker'
-
-  if yes?('Add React?')
-    rails_command 'webpacker:install:react'
-    commit_changes 'Added React to webpacker'
-  end
-end
-
 install_dotenv
 
 gem_group :development do
@@ -136,5 +124,3 @@ install_rspec
 if yes?('Add Active Storage?')
   install_active_storage
 end
-
-install_webpacker
